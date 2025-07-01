@@ -15,9 +15,12 @@
     "postinstall": "quasar prepare"
   },
   "dependencies": {
+    "@iconify/vue": "^5.0.0",
     "@quasar/extras": "^1.16.4",
     "@vue-flow/background": "^1.3.2",
+    "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.45.0",
+    "@vue-flow/minimap": "^1.5.3",
     "pinia": "^3.0.1",
     "quasar": "^2.16.0",
     "vue": "^3.4.18",
