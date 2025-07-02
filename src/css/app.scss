@@ -15,3 +15,75 @@
 @import 'https://cdn.jsdelivr.net/npm/@vue-flow/controls@latest/dist/style.css';
 @import 'https://cdn.jsdelivr.net/npm/@vue-flow/minimap@latest/dist/style.css';
 @import 'https://cdn.jsdelivr.net/npm/@vue-flow/node-resizer@latest/dist/style.css';
+
+// estilo nodos
+
+.node-card {
+  border-radius: 10px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0 12px;
+}
+
+.node-inicio {
+  background-color: green;
+  color: white;
+  min-width: 80px;
+}
+
+.node-add {
+  background-color: white;
+  color: var(--q-grey-8);
+  min-width: 40px;
+  font-size: 1.5rem;
+  border-radius: 20px;
+}
+
+.node-simple {
+  min-width: 300px;
+  min-height: 60px;
+  border: 1px solid var(--q-positive);
+  transition: border 0.2s ease-in-out;
+}
+
+.node-branch {
+  min-width: 300px;
+  min-height: 60px;
+  border: 1px solid var(--q-warning);
+  transition: border 0.2s ease-in-out;
+}
+
+.node-fin {
+  background-color: gray;
+  color: white;
+  min-width: 60px;
+}
+
+.node-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 10px;
+  padding: 6px;
+  font-size: 40px;
+}
+
+.node-icon.positive {
+  color: var(--q-positive);
+  background-color: rgba(33, 186, 69, 0.1);
+}
+
+.node-icon.warning {
+  color: var(--q-warning);
+  background-color: rgba(255, 193, 7, 0.15);
+}
+
+.node-label {
+  margin-left: 28px;
+  width: 100%;
+  text-align: center;
+}

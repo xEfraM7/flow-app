@@ -6,7 +6,6 @@ import type { Node } from '@vue-flow/core';
 import { Icon } from '@iconify/vue';
 
 import { useFlowNodes } from 'src/composables/useFlowNodes';
-// import { useFlowEdges } from 'src/composables/useFlowEdges';
 import NodeEditDrawer from 'src/components/drawers/NodeEditDrawer.vue';
 import NodeCreationDrawer from 'src/components/drawers/NodeCreationDrawer.vue';
 import { MiniMap } from '@vue-flow/minimap';
@@ -116,49 +115,24 @@ onMounted(() => {
   >
     <Background variant="dots" :gap="10" :size="1" pattern-color="#ccc" />
 
-    <!-- nodo-inicio -->
+    <!-- NODO: INICIO -->
     <template #node-inicio="{ data }">
-      <q-card
-        class="bg-green-4 text-white text-center content-center"
-        style="min-width: 80px; border-radius: 10px; min-height: 40px"
-      >
+      <q-card class="node-card node-inicio">
         {{ data.label }}
       </q-card>
     </template>
 
-    <!-- nodo-anadir -->
+    <!-- NODO: ADD -->
     <template #node-add="{ data }">
-      <q-card
-        class="bg-white text-grey-8 text-center text-h4"
-        style="
-          min-width: 40px;
-          border-radius: 20px;
-          min-height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        "
-      >
+      <q-card class="node-card node-add">
         {{ data.label }}
       </q-card>
     </template>
 
-    <!-- nodo-simple -->
+    <!-- NODO: SIMPLE -->
     <template #node-simple="{ data }">
       <q-card
-        class="text-dark"
-        style="
-          min-width: 300px;
-          min-height: 60px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--q-positive);
-          transition: border 0.2s ease-in-out;
-          position: relative;
-          padding: 0 12px;
-        "
+        class="node-card node-simple"
         @mouseover="
           (e: MouseEvent) =>
             ((e.currentTarget as HTMLElement).style.border = '3px solid var(--q-positive)')
@@ -168,111 +142,49 @@ onMounted(() => {
             ((e.currentTarget as HTMLElement).style.border = '1px solid var(--q-positive)')
         "
       >
-        <!-- Ícono fijo a la izquierda -->
-        <Icon
-          icon="mdi:file-document-multiple-outline"
-          style="
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-radius: 10px;
-            padding: 6px;
-            font-size: 40px;
-            color: var(--q-positive);
-            background-color: rgba(33, 186, 69, 0.1); /* Quasar positive con 10% opacidad */
-          "
-        />
-
-        <!-- Texto centrado -->
-        <span style="margin-left: 28px; width: 100%; text-align: center">
-          {{ data.label }}
-        </span>
+        <Icon class="node-icon positive" icon="mdi:file-document-multiple-outline" />
+        <span class="node-label">{{ data.label }}</span>
       </q-card>
     </template>
 
-    <!-- nodo-branch -->
+    <!-- NODO: BRANCH -->
     <template #node-branch="{ data }">
       <q-card
-        class="text-black"
-        style="
-          min-width: 300px;
-          min-height: 60px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--q-warning);
-          transition: border 0.2s ease-in-out;
-          position: relative;
-          padding: 0 12px;
-        "
+        class="node-card node-branch"
         @mouseover="handleBranchHoverIn"
         @mouseleave="handleBranchHoverOut"
       >
-        <Icon
-          icon="mdi:source-branch"
-          style="
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-radius: 8px;
-            padding: 6px;
-            font-size: 40px;
-            color: var(--q-warning);
-            background-color: rgba(255, 193, 7, 0.15);
-          "
-        />
-
-        <span style="margin-left: 28px; width: 100%; text-align: center">
-          {{ data.label }}
-        </span>
+        <Icon class="node-icon warning" icon="mdi:source-branch" />
+        <span class="node-label">{{ data.label }}</span>
       </q-card>
     </template>
 
-    <!-- nodo-branch -->
+    <!-- NODO: BRANCH SIN ÍCONO -->
     <template #node-branchWithoutIcon="{ data }">
       <q-card
-        class="text-black"
-        style="
-          min-width: 300px;
-          min-height: 60px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--q-warning);
-          transition: border 0.2s ease-in-out;
-          position: relative;
-          padding: 0 12px;
-        "
+        class="node-card node-branch"
         @mouseover="handleBranchHoverIn"
         @mouseleave="handleBranchHoverOut"
       >
-        <span style="margin-left: 28px; width: 100%; text-align: center">
-          {{ data.label }}
-        </span>
+        <span class="node-label">{{ data.label }}</span>
       </q-card>
     </template>
 
-    <!-- nodo-fin -->
+    <!-- NODO: FIN -->
     <template #node-fin="{ data }">
-      <q-card
-        class="bg-grey-6 text-white text-center content-center"
-        style="min-width: 60px; border-radius: 10px; min-height: 40px"
-      >
+      <q-card class="node-card node-fin">
         {{ data.label }}
       </q-card>
     </template>
 
+    <!-- Extras -->
     <MiniMap position="bottom-right" />
-
     <Controls position="top-left">
       <ControlButton title="Randomize" @click="updatePos">🎲</ControlButton>
     </Controls>
   </VueFlow>
 
+  <!-- Drawers -->
   <NodeEditDrawer
     v-model="drawerOpen"
     :node="selectedNode"
