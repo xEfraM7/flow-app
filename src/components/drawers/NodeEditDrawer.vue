@@ -4,7 +4,7 @@
       <!-- 🧠 Título con ícono -->
       <div class="row items-center q-mb-lg">
         <Icon
-          :icon="isBranchNode ? 'mdi:source-branch' : 'mdi:file-document-multiple-outline'"
+          :icon="isBranchNode ? 'ion:git-network' : 'mdi:file-document-multiple-outline'"
           style="font-size: 40px; border-radius: 10px; padding: 6px; margin-right: 12px"
           v-if="isBranchNode"
         />

@@ -157,6 +157,85 @@ function getConnectedNodes(nodeId: string): Node[] {
   return initialNodes.value.filter((node) => connectedIds.has(node.id));
 }
 
+function reorderNodePositions() {
+  let y = 300; // Y inicial
+  const spacing = 100;
+
+  const ordered = initialNodes.value.slice().sort((a, b) => a.position.y - b.position.y); // Ordenamos por Y
+
+  for (const node of ordered) {
+    node.position.y = y;
+    y += spacing;
+  }
+}
+function appendFinIfMissing() {
+  const hasFin = initialNodes.value.some((n) => n.type === 'fin');
+  if (hasFin) return;
+
+  const maxY = Math.max(...initialNodes.value.map((n) => n.position.y));
+  const newFinId = `fin-${Date.now()}`;
+  const newFin = createFinNode(newFinId, maxY + 100);
+
+  initialNodes.value.push(newFin);
+
+  // Conectar al último "add" que no tenga edge hacia un fin
+  const addCandidates = initialNodes.value.filter((n) => n.type === 'add').reverse(); // revisar de abajo hacia arriba
+
+  const targetAdd = addCandidates.find(
+    (n) =>
+      !edges.value.some(
+        (e) =>
+          e.source === n.id &&
+          initialNodes.value.find((node) => node.id === e.target && node.type === 'fin'),
+      ),
+  );
+
+  if (targetAdd) {
+    edges.value.push({
+      id: `e-${targetAdd.id}->${newFin.id}`,
+      source: targetAdd.id,
+      target: newFin.id,
+      type: 'smoothstep',
+      markerEnd: 'arrowclosed',
+    });
+  }
+}
+
+function removeNodeById(id: string) {
+  const node = initialNodes.value.find((n) => n.id === id);
+  if (!node) return;
+
+  if (node.type === 'simple') {
+    const index = initialNodes.value.findIndex((n) => n.id === id);
+    const nextNode = initialNodes.value[index + 1];
+
+    // Si el nodo siguiente es "add", lo eliminamos también
+    const idsToRemove = [id];
+    if (nextNode?.type === 'add') {
+      idsToRemove.push(nextNode.id);
+    }
+
+    initialNodes.value = initialNodes.value.filter((n) => !idsToRemove.includes(n.id));
+    edges.value = edges.value.filter(
+      (e) => !idsToRemove.includes(e.source) && !idsToRemove.includes(e.target),
+    );
+  }
+
+  if (node.type === 'branch') {
+    const branchIndex = initialNodes.value.findIndex((n) => n.id === id);
+    const children = initialNodes.value.slice(branchIndex + 1, branchIndex + 7);
+    const idsToRemove = [node.id, ...children.map((n) => n.id)];
+
+    initialNodes.value = initialNodes.value.filter((n) => !idsToRemove.includes(n.id));
+    edges.value = edges.value.filter(
+      (e) => !idsToRemove.includes(e.source) && !idsToRemove.includes(e.target),
+    );
+  }
+
+  reorderNodePositions(); // 🧠 Reorganiza visual
+  appendFinIfMissing(); // 🧩 Añade uno nuevo si ya no queda ninguno
+}
+
 export function useFlowNodes() {
   return {
     initialNodes,
@@ -166,5 +245,6 @@ export function useFlowNodes() {
     addDefaultNode,
     addBranchNode,
     getConnectedNodes,
+    removeNodeById,
   };
 }
