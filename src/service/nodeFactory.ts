@@ -40,7 +40,6 @@ export function createDefaultNode(id: string, label: string, y: number): Node {
     type: 'simple',
     position: { x: getCenteredX() - 115, y },
     data: { label },
-    connectable: true,
   };
 }
 
@@ -50,7 +49,6 @@ export function createBranchNode(id: string, label: string, xOffset: number, y: 
     type: 'branch',
     position: { x: getCenteredX() + xOffset, y },
     data: { label },
-    connectable: true,
   };
 }
 
@@ -65,6 +63,5 @@ export function createBranchChildrenNode(
     type: 'branchWithoutIcon',
     position: { x: getCenteredX() + xOffset, y },
     data: { label },
-    connectable: true,
   };
 }
