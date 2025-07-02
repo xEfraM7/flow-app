@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { VueFlow } from '@vue-flow/core';
+import { ref, onMounted, computed } from 'vue';
+import { Handle, VueFlow, Position } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import type { Node } from '@vue-flow/core';
 import { Icon } from '@iconify/vue';
@@ -21,24 +21,40 @@ const drawerOpen = ref(false);
 const selectedNode = ref<Node | null>(null);
 const selectedBranchChildren = ref<Node[]>([]);
 
+const gotoSourceId = ref<string | null>(null);
+const gotoModeActive = computed(() => gotoSourceId.value !== null);
+
 function onNodeClick({ node }: { node: Node }) {
-  // 👇 Si es tipo "add", abre el drawer de creación
+  if (gotoSourceId.value) {
+    if (['simple', 'branch'].includes(node.type ?? '')) {
+      edges.value.push({
+        id: `e-${gotoSourceId.value}->${node.id}`,
+        source: gotoSourceId.value,
+        target: node.id,
+        animated: true,
+        markerEnd: 'arrowclosed',
+      });
+    } else {
+      alert('❌ Solo puedes conectar a nodos de tipo simple o branch.');
+    }
+
+    gotoSourceId.value = null; // salir del modo ir a
+    return;
+  }
+
+  // resto de comportamiento...
   if (node.type === 'add') {
     clickedAddNodeId.value = node.id;
     creationDrawerOpen.value = true;
     return;
   }
 
-  // 👇 Tipos no editables
   const nonEditableTypes = ['inicio', 'fin', 'branchWithoutIcon'];
-  const type = node.type;
-
-  if (!type || nonEditableTypes.includes(type)) return;
+  if (!node.type || nonEditableTypes.includes(node.type)) return;
 
   selectedNode.value = node;
 
-  // 👇 Si es tipo "branch", obtenemos sus hijos conectados (excepto add y fin)
-  if (type === 'branch') {
+  if (node.type === 'branch') {
     const connected = getConnectedNodes(node.id);
     const filtered = connected.filter((n) => n.type !== 'add' && n.type !== 'fin');
     selectedBranchChildren.value = filtered;
@@ -56,9 +72,24 @@ function onSelectNodeType(type: 'simple' | 'branch' | 'goto') {
   if (type === 'simple') {
     addDefaultNode(index);
   } else if (type === 'branch') {
-    addBranchNode(index); // ✅ ya listo para usarse
+    addBranchNode(index);
   } else if (type === 'goto') {
-    alert('🚧 Paso "ir a" no implementado todavía');
+    const clickedAddNode = initialNodes.value[index];
+    if (!clickedAddNode || clickedAddNode.type !== 'add') {
+      alert('❌ Nodo "crear" no válido');
+      return;
+    }
+
+    // Buscar el nodo fin más cercano después del "add" clickeado
+    const finNode = initialNodes.value.slice(index + 1).find((n) => {
+      return n.type === 'fin' && !edges.value.some((edge) => edge.source === n.id);
+    });
+
+    if (!finNode) {
+      alert('❌ No se encontró un nodo fin disponible después del nodo crear');
+    } else {
+      gotoSourceId.value = finNode.id;
+    }
   }
 
   clickedAddNodeId.value = null;
@@ -132,6 +163,7 @@ onMounted(() => {
     <!-- NODO: SIMPLE -->
     <template #node-simple="{ data }">
       <q-card
+        :class="['node-card node-simple', gotoModeActive ? 'goto-highlight' : '']"
         class="node-card node-simple"
         @mouseover="
           (e: MouseEvent) =>
@@ -145,11 +177,24 @@ onMounted(() => {
         <Icon class="node-icon positive" icon="mdi:file-document-multiple-outline" />
         <span class="node-label">{{ data.label }}</span>
       </q-card>
+      <Handle
+        id="handleSimpleTargetTop"
+        type="target"
+        :position="Position.Top"
+        :style="{
+          opacity: 0,
+          pointerEvents: 'none',
+          width: '10px',
+          height: '10px',
+        }"
+      />
+      <Handle type="source" :position="Position.Bottom" />
     </template>
 
     <!-- NODO: BRANCH -->
     <template #node-branch="{ data }">
       <q-card
+        :class="['node-card node-simple', gotoModeActive ? 'goto-highlight' : '']"
         class="node-card node-branch"
         @mouseover="handleBranchHoverIn"
         @mouseleave="handleBranchHoverOut"
@@ -157,6 +202,18 @@ onMounted(() => {
         <Icon class="node-icon warning" icon="mdi:source-branch" />
         <span class="node-label">{{ data.label }}</span>
       </q-card>
+      <Handle
+        id="handleBranchTargetTop"
+        type="target"
+        :position="Position.Top"
+        :style="{
+          opacity: 0,
+          pointerEvents: 'none',
+          width: '10px',
+          height: '10px',
+        }"
+      />
+      <Handle type="source" :position="Position.Bottom" />
     </template>
 
     <!-- NODO: BRANCH SIN ÍCONO -->
@@ -175,6 +232,27 @@ onMounted(() => {
       <q-card class="node-card node-fin">
         {{ data.label }}
       </q-card>
+      <Handle
+        id="handleEndTargetTop"
+        type="target"
+        :position="Position.Top"
+        :style="{
+          opacity: 0,
+          pointerEvents: 'none',
+          width: '10px',
+          height: '10px',
+        }"
+      />
+      <Handle
+        type="source"
+        :position="Position.Bottom"
+        :style="{
+          opacity: 0,
+          pointerEvents: 'none',
+          width: '10px',
+          height: '10px',
+        }"
+      />
     </template>
 
     <!-- Extras -->

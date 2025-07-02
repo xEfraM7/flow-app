@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import type { Node, Edge } from '@vue-flow/core';
 
-// 🧱 Factory centralizado
 import {
   createInicioNode,
   createFinNode,
@@ -18,32 +17,47 @@ const initialNodes = ref<Node[]>([]);
 const edges = ref<Edge[]>([]);
 const createdNodes = ref<Node[]>([]);
 
-function rebuildEdges() {
-  const newEdges: Edge[] = [];
+// 🔧 Función para evitar duplicados
+function addEdgeIfNotExists(sourceId: string, targetId: string) {
+  const edgeId = `e-${sourceId}->${targetId}`;
+  const exists = edges.value.some(
+    (e) => e.id === edgeId || (e.source === targetId && e.target === sourceId), // Evita bidireccionales cruzadas
+  );
 
-  for (let i = 0; i < initialNodes.value.length - 1; i++) {
-    const source = initialNodes.value[i];
-    const target = initialNodes.value[i + 1];
-
-    newEdges.push({
-      id: `e-${source!.id}->${target!.id}`,
-      source: source!.id,
-      target: target!.id,
+  if (!exists) {
+    edges.value.push({
+      id: edgeId,
+      source: sourceId,
+      target: targetId,
       type: 'smoothstep',
       markerEnd: 'arrowclosed',
     });
   }
-
-  edges.value = newEdges;
 }
 
 function initInitialNodes() {
   initialNodes.value = [
-    createInicioNode(),
-    createAddNode('add-node', 400),
-    createFinNode('2', 500),
+    createInicioNode(), // id: 1
+    createAddNode('add-node', 400), // id: add-node
+    createFinNode('2', 500), // id: 2
   ];
-  rebuildEdges();
+
+  edges.value = [
+    {
+      id: 'e-1->add-node',
+      source: '1',
+      target: 'add-node',
+      type: 'smoothstep',
+      markerEnd: 'arrowclosed',
+    },
+    {
+      id: 'e-add-node->2',
+      source: 'add-node',
+      target: '2',
+      type: 'smoothstep',
+      markerEnd: 'arrowclosed',
+    },
+  ];
 }
 
 function addDefaultNode(clickedIndex: number): Node[] {
@@ -65,7 +79,10 @@ function addDefaultNode(clickedIndex: number): Node[] {
     initialNodes.value[i]!.position.y += spacing * 2;
   }
 
-  rebuildEdges();
+  // 👇 Solo agregamos edges necesarios
+  addEdgeIfNotExists(clickedNode.id, newNode.id);
+  addEdgeIfNotExists(newNode.id, newAdd.id);
+
   return initialNodes.value;
 }
 
@@ -81,7 +98,6 @@ function addBranchNode(clickedIndex: number): Node[] {
     initialNodes.value.splice(finIndex, 1);
   }
 
-  // Generar IDs únicos
   const uid = () => `${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
   const id1 = `n-${uid()}`;
   const id2 = `n-${uid()}`;
@@ -91,7 +107,6 @@ function addBranchNode(clickedIndex: number): Node[] {
   const fin1 = `fin-${uid()}`;
   const fin2 = `fin-${uid()}`;
 
-  // Nodos principales
   const node1 = createBranchNode(id1, 'Nombre de paso brunch', -115, currentY + spacing);
   const node2 = createBranchChildrenNode(id2, 'Nombre de brunch 1', -300, currentY + spacing * 3);
   const node3 = createBranchChildrenNode(id3, 'Nombre de brunch 2', 100, currentY + spacing * 3);
@@ -101,14 +116,12 @@ function addBranchNode(clickedIndex: number): Node[] {
   const addNode2 = createAddNode(add2, currentY + spacing * 4);
   addNode2.position.x = node3.position.x + 130;
 
-  // Nodos de fin
   const finNode1 = createFinNode(fin1, currentY + spacing * 5);
   finNode1.position.x = addNode1.position.x - 10;
 
   const finNode2 = createFinNode(fin2, currentY + spacing * 5);
   finNode2.position.x = addNode2.position.x - 10;
 
-  // Insertar en flujo
   initialNodes.value.splice(
     clickedIndex + 1,
     0,
@@ -121,58 +134,14 @@ function addBranchNode(clickedIndex: number): Node[] {
     finNode2,
   );
 
-  // Edges específicos
-  edges.value.push(
-    {
-      id: `e-${clickedNode.id}->${node1.id}`,
-      source: clickedNode.id,
-      target: node1.id,
-      type: 'smoothstep',
-      markerEnd: 'arrowclosed',
-    },
-    {
-      id: `e-${node1.id}->${node2.id}`,
-      source: node1.id,
-      target: node2.id,
-      type: 'smoothstep',
-      markerEnd: 'arrowclosed',
-    },
-    {
-      id: `e-${node1.id}->${node3.id}`,
-      source: node1.id,
-      target: node3.id,
-      type: 'smoothstep',
-      markerEnd: 'arrowclosed',
-    },
-    {
-      id: `e-${node2.id}->${addNode1.id}`,
-      source: node2.id,
-      target: addNode1.id,
-      type: 'smoothstep',
-      markerEnd: 'arrowclosed',
-    },
-    {
-      id: `e-${node3.id}->${addNode2.id}`,
-      source: node3.id,
-      target: addNode2.id,
-      type: 'smoothstep',
-      markerEnd: 'arrowclosed',
-    },
-    {
-      id: `e-${addNode1.id}->${finNode1.id}`,
-      source: addNode1.id,
-      target: finNode1.id,
-      type: 'smoothstep',
-      markerEnd: 'arrowclosed',
-    },
-    {
-      id: `e-${addNode2.id}->${finNode2.id}`,
-      source: addNode2.id,
-      target: finNode2.id,
-      type: 'smoothstep',
-      markerEnd: 'arrowclosed',
-    },
-  );
+  // ✅ Conexiones explícitas, sin rebuildEdges
+  addEdgeIfNotExists(clickedNode.id, node1.id);
+  addEdgeIfNotExists(node1.id, node2.id);
+  addEdgeIfNotExists(node1.id, node3.id);
+  addEdgeIfNotExists(node2.id, addNode1.id);
+  addEdgeIfNotExists(node3.id, addNode2.id);
+  addEdgeIfNotExists(addNode1.id, finNode1.id);
+  addEdgeIfNotExists(addNode2.id, finNode2.id);
 
   return initialNodes.value;
 }

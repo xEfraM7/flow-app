@@ -87,3 +87,20 @@
   width: 100%;
   text-align: center;
 }
+
+.goto-highlight {
+  animation: blink 1s infinite;
+  box-shadow: 0 0 10px 3px rgba(33, 186, 69, 0.5);
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
