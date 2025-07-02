@@ -30,8 +30,14 @@ export function onNodeClick({ node }: { node: Node }) {
         animated: true,
         markerEnd: 'arrowclosed',
       });
-    } else {
-      alert('❌ Solo puedes conectar a nodos de tipo simple o branch.');
+
+      // 🧼 Reset highlight
+      const finNode = initialNodes.value.find((n) => n.id === gotoSourceId.value);
+      if (finNode) {
+        finNode.data.highlightGoto = false;
+        finNode.data.connectedNodeType = node.type;
+        finNode.data.connectedNodeLabel = node.data.label;
+      }
     }
     gotoSourceId.value = null;
     return;
@@ -70,6 +76,7 @@ export function onSelectNodeType(type: 'simple' | 'branch' | 'goto') {
     const clickedAddNode = initialNodes.value[index];
     if (!clickedAddNode || clickedAddNode.type !== 'add') {
       alert('❌ Nodo "crear" no válido');
+      clickedAddNodeId.value = null;
       return;
     }
 
@@ -85,6 +92,9 @@ export function onSelectNodeType(type: 'simple' | 'branch' | 'goto') {
       alert('❌ No se encontró un nodo fin conectado al nodo crear');
     } else {
       gotoSourceId.value = finNode.id;
+
+      // ✅ Aplica highlight visual al nodo fin
+      finNode.data.highlightGoto = true;
     }
   }
 
